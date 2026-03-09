@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class CommandResponse(BaseModel):
     command: str = Field(description="The command to execute")
+    pardon: str = Field(description="The clarification asks by the model")
 
 
 def generate(prompt: str, client: any) -> CommandResponse:
@@ -61,6 +62,46 @@ def generate(prompt: str, client: any) -> CommandResponse:
     # Parse the response text as JSON
     raw_text = response.output_text
     logger.debug("Raw API response: %s", raw_text)
+
+    data = json.loads(raw_text)
+    logger.info("Parsed command: %s", data.get("command", "<missing>"))
+    return CommandResponse(**data)
+
+def generate_follow_up(followup: str, client: any) -> CommandResponse:
+    """
+    Call OpenAI API to generate a terminal command for the given prompt.
+
+    Args:
+        prompt: The user's natural language request.
+        client: OPenAI client
+
+    Returns:
+        A CommandResponse containing the generated command.
+    """
+    
+    # Build the schema for structured output (OpenAI requires additionalProperties: false)
+    schema = CommandResponse.model_json_schema()
+    schema["additionalProperties"] = False
+
+    logger.info("Calling OpenAI API (model=gpt-5-nano-2025-08-07) with followup prompt: %s", followup)
+
+    response = client.responses.create(
+        model="gpt-5-nano-2025-08-07",
+        input=followup,
+        text={
+            "format": {
+                "type": "json_schema",
+                "name": "command_response",
+                "schema": schema,
+            }
+        },
+        tools=[{"type": "web_search"}],
+        include=["web_search_call.action.sources"],
+    )
+
+    # Parse the response text as JSON
+    raw_text = response.output_text
+    logger.debug("Raw API followup response: %s", raw_text)
 
     data = json.loads(raw_text)
     logger.info("Parsed command: %s", data.get("command", "<missing>"))
