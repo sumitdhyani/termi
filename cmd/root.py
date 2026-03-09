@@ -43,9 +43,16 @@ def cli(ctx, prompt: str | None, toggle: bool, log: bool) -> None:
     stop()
 
     command = resp.command
+    # The output is in the format {"command":"<command>"}
+    # As i have observed, the AI asks for clarification in the following ways:
+    # {"command":"pardon:<clarification>", "pardon":""}
+    # {"command":"", "pardon":"<clarification>"}
+    # Sometiemes it gives vallid command in the command tag but also
+    # populated the "pardon" tag with a blank value
+    # We don't have to treat that case as -ve case, we need to break out of the loop
+    # in such a scenario
     while command.find("pardon:") != -1 or (hasattr(resp, "pardon") and getattr(resp, "pardon") != ""):
         pardon = resp.pardon if hasattr(resp, "pardon") else ""
-        #print_ai_clarification(pardon if pardon != "" else command, elapsed)
         logger.info("Prompting for clarification")
         displayString = pardon if pardon != "" else command
         promptString = click.prompt(displayString + "\n", type=str).strip()
