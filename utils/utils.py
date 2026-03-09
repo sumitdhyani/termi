@@ -1,5 +1,8 @@
+import logging
 import platform
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -15,7 +18,9 @@ def get_host_info() -> HostInfo:
     distro = platform.platform()
     arch = platform.machine()
 
-    return HostInfo(os=os_name, distro=distro, arch=arch)
+    info = HostInfo(os=os_name, distro=distro, arch=arch)
+    logger.debug("Detected host: %s", info)
+    return info
 
 
 def build_command_system_prompt(os: str, distro: str, arch: str) -> str:

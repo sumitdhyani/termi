@@ -1,7 +1,9 @@
+import logging
 from enum import Enum
 
 from rich.console import Console
 
+logger = logging.getLogger(__name__)
 console = Console()
 
 
@@ -23,6 +25,7 @@ def show_menu() -> MenuOption:
     console.print("[green]  X  → Exit[/green]")
 
     user_input = input("> ").strip().lower()
+    logger.debug("Menu input: %s", user_input)
 
     match user_input:
         case "e":
