@@ -2,7 +2,7 @@ import logging, click, os, sys, time
 from openai import OpenAI
 from internal.ai.openai_client import generate, generate_follow_up
 from internal.ui.spinner import start_spinner
-from internal.ui.output import print_ai_response, print_ai_clarification
+from internal.ui.output import print_ai_response
 from utils.logger import setup_logging
 
 logger = logging.getLogger(__name__)
